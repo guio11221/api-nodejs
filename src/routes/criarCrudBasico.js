@@ -2,7 +2,59 @@ const express = require("express");
 
 function criarCrudBasico(config) {
   const router = express.Router();
-  const { nomeEntidade, camposObrigatorios, service } = config;
+  const {
+    nomeEntidade,
+    camposObrigatorios,
+    service,
+    validarCriacao,
+    validarAtualizacao
+  } = config;
+
+  function obterCamposInformados(body) {
+    return Object.keys(body).filter((campo) => body[campo] !== undefined);
+  }
+
+  function validarCamposObrigatorios(body) {
+    return camposObrigatorios.filter((campo) => body[campo] === undefined || body[campo] === "");
+  }
+
+  async function atualizarRegistro(req, res) {
+    const camposInformados = obterCamposInformados(req.body);
+
+    if (camposInformados.length === 0) {
+      return res.status(400).json({ erro: "Informe ao menos um campo para atualizar" });
+    }
+
+    const faltando = camposInformados
+      .filter((campo) => camposObrigatorios.includes(campo))
+      .filter((campo) => req.body[campo] === "");
+
+    if (faltando.length > 0) {
+      return res.status(400).json({
+        erro: `Informe: ${faltando.join(", ")}`
+      });
+    }
+
+    if (validarAtualizacao) {
+      const erroValidacao = await validarAtualizacao(req.body);
+
+      if (erroValidacao) {
+        return res.status(400).json({ erro: erroValidacao });
+      }
+    }
+
+    try {
+      const resultado = await service.atualizar(req.params.id, req.body);
+
+      if (resultado.changes === 0) {
+        return res.status(404).json({ erro: `${nomeEntidade} nao encontrado` });
+      }
+
+      res.json(resultado.registro);
+    } catch (erro) {
+      res.status(500).json({ erro: `Erro ao atualizar ${nomeEntidade}` });
+    }
+  }
 
   router.get("/", async (req, res) => {
     try {
@@ -28,12 +80,20 @@ function criarCrudBasico(config) {
   });
 
   router.post("/", async (req, res) => {
-    const faltando = camposObrigatorios.filter((campo) => req.body[campo] === undefined || req.body[campo] === "");
+    const faltando = validarCamposObrigatorios(req.body);
 
     if (faltando.length > 0) {
       return res.status(400).json({
         erro: `Informe: ${faltando.join(", ")}`
       });
+    }
+
+    if (validarCriacao) {
+      const erroValidacao = await validarCriacao(req.body);
+
+      if (erroValidacao) {
+        return res.status(400).json({ erro: erroValidacao });
+      }
     }
 
     try {
@@ -45,26 +105,10 @@ function criarCrudBasico(config) {
   });
 
   router.put("/:id", async (req, res) => {
-    const faltando = camposObrigatorios.filter((campo) => req.body[campo] === undefined || req.body[campo] === "");
-
-    if (faltando.length > 0) {
-      return res.status(400).json({
-        erro: `Informe: ${faltando.join(", ")}`
-      });
-    }
-
-    try {
-      const resultado = await service.atualizar(req.params.id, req.body);
-
-      if (resultado.changes === 0) {
-        return res.status(404).json({ erro: `${nomeEntidade} nao encontrado` });
-      }
-
-      res.json(resultado.registro);
-    } catch (erro) {
-      res.status(500).json({ erro: `Erro ao atualizar ${nomeEntidade}` });
-    }
+    return atualizarRegistro(req, res);
   });
+
+  router.patch("/:id", atualizarRegistro);
 
   router.delete("/:id", async (req, res) => {
     try {

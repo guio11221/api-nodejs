@@ -34,8 +34,21 @@ function criarCrudBasicoService(config) {
   }
 
   async function atualizar(id, dados) {
+    const registroAtual = await buscarPorId(id);
+
+    if (!registroAtual) {
+      return {
+        changes: 0,
+        registro: null
+      };
+    }
+
+    const dadosAtualizados = {
+      ...registroAtual,
+      ...dados
+    };
     const setClause = camposPermitidos.map((campo) => `${campo} = ?`).join(", ");
-    const valores = camposPermitidos.map((campo) => dados[campo] ?? null);
+    const valores = camposPermitidos.map((campo) => dadosAtualizados[campo] ?? null);
     const resultado = await run(
       `UPDATE ${tabela} SET ${setClause} WHERE id = ?`,
       [...valores, id]
@@ -45,7 +58,7 @@ function criarCrudBasicoService(config) {
       changes: resultado.changes,
       registro: {
         id: Number(id),
-        ...montarPayload(dados)
+        ...montarPayload(dadosAtualizados)
       }
     };
   }

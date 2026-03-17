@@ -4,13 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="d3fce22e-7330-4c13-a90f-1973ccc1c3a0" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/src/routes/clientes.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/routes/clientes.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/routes/criarCrudBasico.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/routes/criarCrudBasico.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/routes/movimentacoes.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/routes/movimentacoes.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/routes/produtos.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/routes/produtos.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/routes/vendedores.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/routes/vendedores.js" afterDir="false" />
-    </list>
+    <list default="true" id="d3fce22e-7330-4c13-a90f-1973ccc1c3a0" name="Changes" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -93,7 +87,7 @@
       <workItem from="1772729809121" duration="1450000" />
       <workItem from="1772758068563" duration="264000" />
       <workItem from="1773702998550" duration="1955000" />
-      <workItem from="1773707277855" duration="417000" />
+      <workItem from="1773707277855" duration="990000" />
     </task>
     <servers />
   </component>
