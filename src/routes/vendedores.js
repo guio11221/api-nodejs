@@ -1,8 +1,8 @@
 const criarCrudBasico = require("./criarCrudBasico");
+const vendedoresService = require("../services/vendedoresService");
 
 module.exports = criarCrudBasico({
-  tabela: "vendedores",
   nomeEntidade: "vendedor",
   camposObrigatorios: ["nome"],
-  camposPermitidos: ["nome", "email", "comissao"]
+  service: vendedoresService
 });

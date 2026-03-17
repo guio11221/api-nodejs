@@ -1,13 +1,12 @@
 const express = require("express");
-const { all, get, run } = require("../database");
 
 function criarCrudBasico(config) {
   const router = express.Router();
-  const { tabela, nomeEntidade, camposObrigatorios, camposPermitidos } = config;
+  const { nomeEntidade, camposObrigatorios, service } = config;
 
   router.get("/", async (req, res) => {
     try {
-      const registros = await all(`SELECT * FROM ${tabela} ORDER BY id`);
+      const registros = await service.listar();
       res.json(registros);
     } catch (erro) {
       res.status(500).json({ erro: `Erro ao buscar ${nomeEntidade}` });
@@ -16,7 +15,7 @@ function criarCrudBasico(config) {
 
   router.get("/:id", async (req, res) => {
     try {
-      const registro = await get(`SELECT * FROM ${tabela} WHERE id = ?`, [req.params.id]);
+      const registro = await service.buscarPorId(req.params.id);
 
       if (!registro) {
         return res.status(404).json({ erro: `${nomeEntidade} nao encontrado` });
@@ -37,23 +36,9 @@ function criarCrudBasico(config) {
       });
     }
 
-    const valores = camposPermitidos.map((campo) => req.body[campo] ?? null);
-    const colunas = camposPermitidos.join(", ");
-    const placeholders = camposPermitidos.map(() => "?").join(", ");
-
     try {
-      const resultado = await run(
-        `INSERT INTO ${tabela} (${colunas}) VALUES (${placeholders})`,
-        valores
-      );
-
-      res.status(201).json({
-        id: resultado.lastID,
-        ...camposPermitidos.reduce((acc, campo) => {
-          acc[campo] = req.body[campo] ?? null;
-          return acc;
-        }, {})
-      });
+      const registro = await service.criar(req.body);
+      res.status(201).json(registro);
     } catch (erro) {
       res.status(500).json({ erro: `Erro ao cadastrar ${nomeEntidade}` });
     }
@@ -68,26 +53,14 @@ function criarCrudBasico(config) {
       });
     }
 
-    const setClause = camposPermitidos.map((campo) => `${campo} = ?`).join(", ");
-    const valores = camposPermitidos.map((campo) => req.body[campo] ?? null);
-
     try {
-      const resultado = await run(
-        `UPDATE ${tabela} SET ${setClause} WHERE id = ?`,
-        [...valores, req.params.id]
-      );
+      const resultado = await service.atualizar(req.params.id, req.body);
 
       if (resultado.changes === 0) {
         return res.status(404).json({ erro: `${nomeEntidade} nao encontrado` });
       }
 
-      res.json({
-        id: Number(req.params.id),
-        ...camposPermitidos.reduce((acc, campo) => {
-          acc[campo] = req.body[campo] ?? null;
-          return acc;
-        }, {})
-      });
+      res.json(resultado.registro);
     } catch (erro) {
       res.status(500).json({ erro: `Erro ao atualizar ${nomeEntidade}` });
     }
@@ -95,7 +68,7 @@ function criarCrudBasico(config) {
 
   router.delete("/:id", async (req, res) => {
     try {
-      const resultado = await run(`DELETE FROM ${tabela} WHERE id = ?`, [req.params.id]);
+      const resultado = await service.remover(req.params.id);
 
       if (resultado.changes === 0) {
         return res.status(404).json({ erro: `${nomeEntidade} nao encontrado` });
